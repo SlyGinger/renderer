@@ -74,37 +74,6 @@ int triangle (tga_image * img, v2i p0, v2i p1, v2i p2, double intensity){
     return 0;
 }
 
-double dot_prod(v3d a, v3d b){
-    return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
-}
-
-v3d * cross_prod (v3d d, v3d a, v3d b){
-    v3d c;
-    c[1] = a[1]*b[2] - a[2]*b[1];
-    c[2] = a[2]*b[0] - a[0]*b[2];
-    c[0] = a[0]*b[1] - a[1]*b[0];
-    for (int i = 0; i < 3; i++){
-        d[i] = c[i];
-    }
-    //return y*v.z-z*v.y, z*v.x-x*v.z, x*v.y-y*v.x
-    return d;
-}
-
-v3d * norm_v3d (v3d a){
-    // double max = (a[0]);
-    // if ((a[1]) > max)
-    //     max = a[1];
-    // if ((a[2]) > max)
-    //     max = a[2];
-    // max = (max);
-    // for (int i = 0; i < 3; i++){
-    //     a[i] = (a[i])/max;
-    // }
-    double len = sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);
-    for  (int i = 0; i < 3; i++)
-        a[i] /= len;
-    return a;
-}
 int triangle_face  (tga_image *img, model * mdl, face  * poly){
     v2i t0, t1, t2;
     //int x0 = (m.vertices[m.faces[i]->vertices[j]][0]+1.) * tga.header->width/2;

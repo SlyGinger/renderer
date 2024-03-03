@@ -1,32 +1,5 @@
 #include "model.h"
 
-double custom_atof(const char *str){
-    int ret = 0;
-    int ret1 = 0;
-    double s = 1;
-    int i = 0;
-    int pwr = 1;
-    
-    while (str[++i] != '.' && str[i] && i < MAXLINE){
-        ret *= 10;
-        ret += str[i] - '0';
-        printf ("test atof1 %d vs %c\n",ret, str[i]);
-    } 
-    if (str[i] == '.')
-        while (str[++i]){
-            pwr *= 10;
-            ret1 = ret1 *10 + str[i]-'0';
-            printf ("test atof2  %d vs %c\n",ret1, str[i]);
-        }
-    s = s*100000 + ret1 - 100000;
-    s /= 10000000; 
-    //s = s+1/ret; f
-    if (str[0] == '-')
-        return s;
-    return ret1;
-    
-}
-
 int  read_obj (FILE * f, model * mdl){
     
     char line[MAXLINE];
@@ -158,12 +131,6 @@ void print_faces (model * mdl){
     }
 }
 
-v3d *get_vertex (model *mdl, int poly, int vert ){
-    return &mdl->vertices[mdl->faces[poly]->vertices[vert]];
-}
-int add_vertex (model * mdl, ...){
-
-}
 
 void print_face (model * mdl, size_t n){
     for (int j =0; j < mdl->faces[n]->nvertices; j++)

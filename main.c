@@ -53,18 +53,9 @@ int main (void){
     // v2i c = {50,15};
     // triangle(&tga,a,b,c);
     //triangle_face (&tga, &m,m.faces[5]);
-    write_tga("a4.tga", &tga);
+    write_tga("b1.tga", &tga);
     
-    // for (int i = 30; i < 100; i++){
-    //     if ((i - 1) % 10 == 0){
-    //         continue;
-    //     }
-    //     if (i % 6 == 0){
-    //         printf ("\nЧасть %d\n\n",i/6-4);
-    //     }
-    //     printf ("%d*3 = ?\n%d*4 = ?\n%d*8 = ?\n%d*9 = ?\n",i,i,i,i);
-    // }
-
+   
     
 
     
