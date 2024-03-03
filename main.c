@@ -12,6 +12,8 @@ int main (void){
     f = fopen("t.obj","r");
     read_obj(f,&m);
     norm_scale(&m);
+    int * z_buff;
+    z_buff = (int *) malloc (sizeof (int) * tga.header->height * tga.header->width);
     //print_faces(&m);
     for (int i = 0; i < m.n_faces; i++){
         v2i t0;
@@ -46,7 +48,7 @@ int main (void){
         // if (line_cnt < 3){
         //     printf("wring line at %d\n", i);
         // }
-        triangle_face(&tga, &m,m.faces[i]);
+        triangle_face(&tga, &m,m.faces[i], z_buff);
     }
     // v2i a = {50,40};
     // v2i b = {20,70};

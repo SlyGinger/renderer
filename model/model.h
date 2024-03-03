@@ -1,3 +1,6 @@
+#ifndef __MODEL_H__
+#define __MODEL_H__
+
 
 #include "../common.h"
 #include "../geometry/geometry.h"
@@ -21,4 +24,4 @@ void print_face (model *, size_t);
 void print_vert (model *);
 void norm_scale (model *);
 
-
+#endif
