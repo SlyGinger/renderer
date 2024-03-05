@@ -23,6 +23,7 @@ tga_image* read_tga (const char * filename){
     print_metadata(header);
     img->ppd = header->pixel_depth>>3;
     img->data = (uint8_t *) malloc (header->width * header->height * img->ppd);
+    fread((uint8_t *) img->data  ,sizeof(uint8_t) * 3,header->width * header->height * img->ppd,f);
     img->header = header;
     //printf ("n=%d p=%d div=%lu s=%lu", img->ppd, header->pixel_depth, header->pixel_depth/sizeof(uint8_t), sizeof(uint8_t));
     //printf ("read: %lu\n", fread(  (uint8_t *)img->data, sizeof(uint8_t), header->width * header->height * img->ppd, f ));

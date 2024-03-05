@@ -5,6 +5,9 @@
 
 int main (void){
     tga_image tga;
+    tga_image *texture;
+    
+    //african_head_diffuse.tga
     tga = *create_tga(1000,1000);
     model m;
     FILE * f;
@@ -13,7 +16,9 @@ int main (void){
     read_obj(f,&m);
     norm_scale(&m);
     int * z_buff;
-    z_buff = (int *) malloc (sizeof (int) * tga.header->height * tga.header->width);
+    z_buff = (int *) malloc (sizeof (int) * tga.header->width * tga.header->height);
+    for (int i = 0; i< tga.header->width * tga.header->height; i++)
+        z_buff[i] = INT_MIN;
     //print_faces(&m);
     for (int i = 0; i < m.n_faces; i++){
         v2i t0;
@@ -48,14 +53,17 @@ int main (void){
         // if (line_cnt < 3){
         //     printf("wring line at %d\n", i);
         // }
-        triangle_face(&tga, &m,m.faces[i], z_buff);
+        triangle_face(&tga, &m,m.faces[i],z_buff);
     }
+    dump_z_buff(&tga,z_buff);
     // v2i a = {50,40};
     // v2i b = {20,70};
     // v2i c = {50,15};
     // triangle(&tga,a,b,c);
     //triangle_face (&tga, &m,m.faces[5]);
-    write_tga("b1.tga", &tga);
+    write_tga("z1.tga", &tga);
+    texture = read_tga ("head_diffuse.tga");
+    write_tga("chech.tga", texture);
     
    
     

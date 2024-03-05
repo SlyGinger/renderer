@@ -30,3 +30,22 @@ void v3d_swap (v3d a, v3d b){
         b[i] = t;
     }
 }
+
+void v3i_swap (v3i a, v3i b){
+    int t;
+    for  (int i = 0; i < 3; i++){
+        t = a[i];
+        a[i] = b[i];
+        b[i] = t;
+    }
+}
+
+void v3d_set (v3d a, v3d b){
+    for (int i = 0; i < 3; i++)
+        a[i] = b[i];
+}
+
+void v3i_set (v3i a, v3i b){
+    for (int i = 0; i < 3; i++)
+        a[i] = b[i];
+}
