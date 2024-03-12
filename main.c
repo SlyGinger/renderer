@@ -12,7 +12,7 @@ int main (void){
     model m;
     FILE * f;
     print_metadata(tga.header);
-    f = fopen("t.obj","r");
+    f = fopen("a.obj","r");
     read_obj(f,&m);
     norm_scale(&m);
     int * z_buff;

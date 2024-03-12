@@ -49,3 +49,33 @@ void v3i_set (v3i a, v3i b){
     for (int i = 0; i < 3; i++)
         a[i] = b[i];
 }
+
+void * v3i_add(v3i c, v3i a, v3i b, int sign){
+    //sign = sign/abs(sign);
+    if (sign > 0)
+        for (int i = 0; i < 3; i++){
+            //printf ("%d + %d",a[i],b[i]);
+            c[i] = a[i] + b[i];
+            //printf ("= %d\n",c[i]);
+        }
+    else 
+        for (int i = 0; i < 3; i++){
+            //printf ("%d - %d",a[i],b[i]);
+            c[i] = a[i] - b[i];
+            //printf ("= %d\n",c[i]);
+        }
+    return c;
+}
+
+void * v3i_mul(v3i a, double x){
+    for (int i = 0; i < 3; i++){
+        //printf ("%d * %lf",a[i],x);
+        a[i] = (double)a[i] * x + 0.5;
+        //printf ("=%d\n",a[i]);
+    }
+    return a;
+}
+
+void print_v3i (v3i a){
+    printf ("x=%d y=%d z=%d\n",a[0],a[1],a[2]);
+}

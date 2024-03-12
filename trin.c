@@ -3,13 +3,16 @@
 int triangle (tga_image * img, v3i p0, v3i p1, v3i p2, double intensity, int * z_buff){
     tga_color color;
     tga_color color2;
+    tga_color color3;
     set_color (&color,RAW, 255*intensity,255*intensity,255*intensity,0);
     set_color (&color2,RAW, 255,0,255,0);
+    set_color (&color3,RAW, 0,255,255,0);
     v3i t0 = {p0[0],p0[1],p0[2]};
     v3i t1 = {p1[0],p1[1],p1[2]};
     v3i t2 = {p2[0],p2[1],p2[2]}; 
     int z_buff_id;
     int z;
+    int x_dir_flag = 0;
 
     //sort
 
@@ -28,64 +31,169 @@ int triangle (tga_image * img, v3i p0, v3i p1, v3i p2, double intensity, int * z
         // swap_int(&t1[0],&t2[0]);
         v3i_swap (t1,t2);
     }
+    int height =  t2[1]-t0[1];
+    double seg_height;
+    for (int y = t0[1]; y <= t1[1]; y++){
+        v3i A,B;
+        double alpha;
+        double beta;
+        alpha = (double) (y-t0[1])/(double)height;
+        //printf ("A=%lf\n",alpha);
+        beta = (double) (y-t0[1])/(double)(t1[1] - t0[1]);
+        
+        v3i_add(A,t2,t0,-1);//A=t2-t0
+        v3i_mul(A,alpha);//A*alpha
+        v3i_add(A,A,t0,1);//A+t0;
+
+        v3i_add(B,t1,t0,-1);//B=t1-t0
+        v3i_mul(B,beta);//A*beta
+        v3i_add(B,B,t0,1);//B+t0;
+        if (t0[1] == t1[1]){
+            printf ("DATA\n");
+            print_v3i(t0);
+            print_v3i(t1);
+            print_v3i(t2);
+            printf ("alpha = %lf beta = %lf\n",alpha,beta); 
+            print_v3i(A);
+            print_v3i(B);
+        }
+        
+        if (A[0] > B[0]) {
+            v3i_swap (A,B);
+        }
+        for (int xi = A[0]; xi < B[0]; xi++){
+            //bilinear
+            double ph = A[0] == B[0] ? 1.0 : (double)(xi - A[0])/(double)(B[0]-A[0]);
+            v3i P;
+            for (int i = 0; i < 3; i++){
+                P[i] = A[i] + ((B[i]-A[i]) * ph+0.5);
+            }
+            // v3i_add(P,A,B,-1);//P = A-B
+            // v3i_mul(P,ph);//P*ph
+            // v3i_add(P,P,A,1);//P+A;
+
+            int idz = P[0]+P[1]*img->header->width;
+            //z_buff[idz] = P[2];
+            if (z_buff[idz] < P[2]){
+                set_pixel(img,P[0],P[1],&color);
+                z_buff[idz] = P[2];
+            }
+
+        }
+    }
+
+    for (int y = t1[1]; y <= t2[1]; y++){
+        v3i A,B;
+        double alpha;
+        double beta;
+        alpha = (double) (y-t0[1])/(double)height;
+        beta = (double) (y-t1[1])/(double)(t2[1] - t1[1]);
+        v3i_add(A,t2,t0,-1);//A=t2-t0
+        v3i_mul(A,alpha);//A*alpha
+        v3i_add(A,A,t0,+1);//A+t0;
+
+        v3i_add(B,t2,t1,-1);//B=t1-t0
+        v3i_mul(B,beta);//A*beta
+        v3i_add(B,B,t1,+1);//B+t0;
+        if (t2[1] == t1[1]){
+            printf ("DATA2\n");
+            print_v3i(t0);
+            print_v3i(t1);
+            print_v3i(t2);
+            printf ("alpha = %lf beta = %lf\n",alpha,beta); 
+            print_v3i(A);
+            print_v3i(B);
+        }
+        if (A[0] > B[0]) {
+            v3i_swap (A,B);
+        }
+        for (int xi = A[0]; xi < B[0]; xi++){
+            //bilinear
+            double ph = A[0] == B[0] ? 1.0 : (double)(xi - A[0])/(double)(B[0]-A[0]);
+            v3i P;
+            for (int i = 0; i < 3; i++){
+                P[i] = A[i] + ((B[i]-A[i]) * ph+0.5);
+            }
+            // v3i_add(P,A,B,-1);//P = A-B
+            // v3i_mul(P,ph);//P*ph
+            // v3i_add(P,P,A,1);//P+A;
+
+
+            int idz = P[0]+P[1]*img->header->width;
+            //z_buff[idz] = P[2];
+            if (z_buff[idz] < P[2]){
+                set_pixel(img,P[0],P[1],&color);
+                z_buff[idz] = P[2];
+            }
+        }
+
+    }
+
+
+
+
 
     //up
 
-    int xi = 0;
-    int x0 = t1[0];
-    for (int yi = t1[1]; yi < t2[1]; yi++){
-
-        int xn = t0[0] == t2[0] ? t0[0] : get_line_i_x(t0, t2, yi);
-        x0 = get_line_i_x(t1, t2, yi);
-        x0 = t1[0] == t2[0] ? t1[0] : get_line_i_x(t1, t2, yi);
-
-        if (xn > x0){
-            xi = x0;
-        } else {
-            xi = xn;
-            xn = x0;
-        }
-        
-        for (; xi <= xn; xi++){
-            z = get_line_i_z(t0,t1,xi);
-            z_buff_id = xi + img->header->width * yi;
+    // int xi = 0;
+    // int x0 = t1[0];
+    // for (int yi = t1[1]; yi < t2[1]; yi++){
+    //     int xn = t0[0] == t2[0] ? t0[0] : get_line_i_x(t0, t2, yi);
+    //     x0 = t1[0] == t2[0] ? t1[0] : get_line_i_x(t1, t2, yi);
+    //     if (xn > x0){
+    //         xi = x0;
+    //     } else {
+    //         xi = xn;
+    //         xn = x0;
+    //     }
+    //     for (; xi <= xn; xi++){
+    //         z = get_line_i_z(t1,t2,xi);
+    //         z_buff_id = xi + img->header->width * yi;
             
-            if (z_buff[z_buff_id] < z) {
-                if (z == 20000)
-                    set_pixel(img, xi, yi, &color2);
-                else
-                    set_pixel(img, xi, yi, &color);
-                z_buff[z_buff_id] = z;
-            }
-        }
-    }
+    //         if (z_buff[z_buff_id] < z) {
+    //             if (z == 20000)
+    //                 set_pixel(img, xi, yi, &color2);
+    //             else if (x_dir_flag == 1){
+    //                 printf ("yellow\n");
+    //                 set_pixel(img, xi, yi, &color3);
+    //             } else
+    //                 set_pixel(img, xi, yi, &color);
+    //             z_buff[z_buff_id] = z;
+    //         }
+    //     }
+    // }
 
-    //down
+    // //down
    
-    xi = 0;
-    x0 = t1[0];
-    for (int yi = t1[1]; yi > t0[1]; yi--){
-        int xn = t0[0] == t2[0] ? t0[0] : get_line_i_x(t0, t2, yi);
-        x0 = t0[0] == t1[0] ? t0[0] : get_line_i_x(t1, t0, yi);
-        if (xn > x0){
-            xi = x0;
-        } else {
-            xi = xn;
-            xn = x0;
-        }
-        for (; xi <= xn; xi++){
-            z = get_line_i_z(t0,t1,xi);
-            z_buff_id = xi + img->header->width * yi;
+    // xi = 0;
+    // x0 = t1[0];
+    // for (int yi = t1[1]; yi > t0[1]; yi--){
+    //     int xn = t0[0] == t2[0] ? t0[0] : get_line_i_x(t0, t2, yi);
+    //     x0 = t0[0] == t1[0] ? t0[0] : get_line_i_x(t1, t0, yi);
+    //     if (xn > x0){
+    //         xi = x0;
+    //     } else {
+    //         xi = xn;
+    //         xn = x0;
+    //     }
+
+    //     for (; xi <= xn; xi++){
+
+    //         z = get_line_i_z(t1,t0,xi);
+    //         z_buff_id = xi + img->header->width * yi;
             
-            if (z_buff[z_buff_id] < z) {
-                if (z == 20000)
-                    set_pixel(img, xi, yi, &color2);
-                else
-                    set_pixel(img, xi, yi, &color);
-                z_buff[z_buff_id] = z;
-            }
-        }
-    }
+    //         if (z_buff[z_buff_id] < z) {
+    //             if (z == 20000)
+    //                 set_pixel(img, xi, yi, &color2);
+    //             else if (x_dir_flag == 1){
+    //                 printf ("yellow\n");
+    //                 set_pixel(img, xi, yi, &color3);
+    //             } else
+    //                 set_pixel(img, xi, yi, &color);
+    //             z_buff[z_buff_id] = z;
+    //         }
+    //     }
+    // }
     return 0;
 }
 
@@ -98,23 +206,7 @@ int triangle_face  (tga_image *img, model * mdl, face  * poly, int * z_buff){
     v3d bc;
     tga_color color;
     tga_color color2;
-    
-    
-    
-
-
-     //sort
-    // if (world_coords[0][1] > world_coords[1][1]) {
-    //     v3d_swap(world_coords[0],world_coords[1]);
-    // }
-    // if (world_coords[0][1] > world_coords[2][1]) {
-    //     v3d_swap(world_coords[0],world_coords[2]);
-    // }
-    // if (world_coords[1][1] > world_coords[2][1]) {
-    //     v3d_swap(world_coords[1],world_coords[2]);
-    // }
-
-    
+ 
     for (int i = 0; i < 3; i++){
         screen_coords[i][0] = (mdl->vertices[poly->vertices[i]][0]+1) * img->header->width/2;
         screen_coords[i][1] = (mdl->vertices[poly->vertices[i]][1]+1) * img->header->height/2;
@@ -132,50 +224,7 @@ int triangle_face  (tga_image *img, model * mdl, face  * poly, int * z_buff){
     v3d_norm(ab);
     v3d v_light = {-1,0,0};
     double intensity = v3d_dot_prod(v_light,ab);
-    set_color (&color,RAW, 255*intensity,255*intensity,255*intensity,0);
-    set_color (&color2,RAW, 255,255,255,0);
-
-
-
-
     if (intensity > 0){
-        // int xi = 0;
-        // int x0 = t1[0];
-        // for (int yi = t1[1]; yi < t2[1]; yi++){
-        //     //int xn = get_line_i_x(t0, t2, yi);
-        //     int xn = t0[0] == t2[0] ? t0[0] : get_line_i_x(t0, t2, yi);
-        //     x0 = get_line_i_x(t1, t2, yi);
-        //     x0 = t1[0] == t2[0] ? t1[0] : get_line_i_x(t1, t2, yi);
-        //     //printf ("up new line x0=%d x1=%d y=%d\n",x0,xn,yi);
-        //     if (xn > x0){
-        //         xi = x0;
-        //     } else {
-        //         xi = xn;
-        //         xn = x0;
-        //     }
-            
-        //     for (; xi <= xn; xi++){
-        //         z_buff_id = 0;
-        //         set_pixel(img, xi, yi, &color);
-        //     }
-        // }
-
-
-        // xi = 0;
-        // x0 = t1[0];
-        // for (int yi = t1[1]; yi > t0[1]; yi--){
-        //     int xn = t0[0] == t2[0] ? t0[0] : get_line_i_x(t0, t2, yi);
-        //     x0 = t0[0] == t1[0] ? t0[0] : get_line_i_x(t1, t0, yi);
-        //     if (xn > x0){
-        //         xi = x0;
-        //     } else {
-        //         xi = xn;
-        //         xn = x0;
-        //     }
-        //     for (; xi <= xn; xi++){
-        //         set_pixel(img, xi, yi, &color);
-        //     }
-        // }
         triangle(img,screen_coords[0],screen_coords[1],screen_coords[2],intensity, z_buff);
     }
     
@@ -185,19 +234,28 @@ int triangle_face  (tga_image *img, model * mdl, face  * poly, int * z_buff){
 
 int get_line_i_x(v3i a, v3i b, int y){
     double k = 0;
-    v3i t0 = {a[0],a[1]};
-    v3i t1 = {b[0],b[1]};
+    v3i t0 = {a[0],a[1],a[2]};
+    v3i t1 = {b[0],b[1],b[2]};
     if (t0[0] < t1[0]){
-        swap_int (&t0[0],&t1[0]);
-        swap_int (&t0[1],&t1[1]);
+        v3i_swap(t0,t1);
     }
     
     k =  ((double) (t0[1] - t1[1])) / (double) (t0[0] - t1[0]);
-
+    //handled
+    if (t0[0] - t1[0] == 0){
+        if (t0[1] - t1[1]==0){
+            printf ("SAME_POINTS_ERR_X_FN k = %lf\n",k);
+        } else {
+            printf ("DIFF_POINTSERR_X_FN k = %lf\n",k);
+        }
+        return -999;
+        
+    }
     double c = t0[1] - k * t0[0];
     //printf ("!linear function: %d = %lf * x + %lf (%lf %lf)\n",y,k,c,(double) (t0[1] - t1[1]),(double) (t0[0] - t1[0]));
     //printf ("!linear function x%lf\n", (y - c)/k);
-    
+    if (t0[0] - t1[0] == 0)
+        printf ("ERR_X_FN x = %lf\n",(y - c)/k);
     return (y - c)/k;
 }
 
@@ -224,18 +282,27 @@ int get_line_i_z (v3i p1, v3i p2, int x){
     //int c = a[2] > b[2] ? b[2] : a[2];
     int c = b[2];
     
-    k =  ((double) (a[2] - b[2])) / (double) (a[0] - b[0]);
+    //k =  ((double) (a[2] - b[2])) / (double) (a[0] - b[0]);
+     
     if (a[0] - b[0] == 0){
-        k=200;
+        k = 1;
+        //k=200;
         printf ("possible wrong dx=0, but z = %lf k=%lf c = %d\n",x*k+c, k, c);
-        return 20000;
+        //return 20000;
         
-    }
+    } else 
+        k = (double)(x - b[0])/(double) (a[0] - b[0]);
+   // if (a[2] - b[2] == 0){
+   //     k=200;
+   //     printf ("possible wrong dz=0, but z = %lf k=%lf c = %d\n",x*k+c, k, c);
+   //     return 10000;
+        
+   // }
         //k =  200;
   //  if (a[2] - b[2] == 0)
    //     printf ("possible wrong dz=0, but z = %lf k=%lf c = %d\n",x*k+c, k, c);
     printf ("Z: k=%lf c=%d\n",k,c);
-    return (x - b[0])*k+c;
+    return ((double) (a[2] - b[2]))*k+c;
 }
 
 void print_v2i (v2i a){
@@ -265,5 +332,10 @@ int linear_interpolate (v3i a, v3i b, int arg){
     int x0;
     int x1;
     f0 = a[2];
+
+}
+
+int bilinear_interpolation (v3i a, v3i b, int x, int y){
+    
 
 }
