@@ -79,3 +79,7 @@ void * v3i_mul(v3i a, double x){
 void print_v3i (v3i a){
     printf ("x=%d y=%d z=%d\n",a[0],a[1],a[2]);
 }
+
+void print_v3d (v3d a){
+    printf ("x=%lf y=%lf z=%lf\n",a[0],a[1],a[2]);
+}

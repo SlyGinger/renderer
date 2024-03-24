@@ -20,41 +20,15 @@ int main (void){
     for (int i = 0; i< tga.header->width * tga.header->height; i++)
         z_buff[i] = INT_MIN;
     //print_faces(&m);
+    printf ("facess%d",m.n_faces);
     for (int i = 0; i < m.n_faces; i++){
         v2i t0;
         v2i t1;
         v2i t2; 
         int line_cnt = 0;
-        //print_face(&m, i);
-        // for (int j = 0; j < 3; j++){
-                
-        //         size_t nfaces = m.faces[i]->nvertices-1;
-        //         int x0 = (m.vertices[m.faces[i]->vertices[j]][0]+1.) * tga.header->width/2;
-        //         int y0 = (m.vertices[m.faces[i]->vertices[j]][1]+1.) * tga.header->height/2;
-        //         int x1 = (m.vertices[m.faces[i]->vertices[(j+1)%nfaces]][0]+1.) * tga.header->width/2;
-        //         int y1 = (m.vertices[m.faces[i]->vertices[(j+1)%nfaces]][1]+1.) * tga.header->height/2;
-
-        //         if (j == 1){
-        //             t0[0] = x0;
-        //             t0[1] = y0;
-        //         }
-        //         if (j == 2){
-        //             t1[0] = x0;
-        //             t1[1] = y0;
-        //         }
-        //         if (j == 1){
-        //             t1[0] = x0;
-        //             t1[1] = y0;
-        //         }
-        //         //printf ("start line f:%d %d %d %d %d\n",i, x0,y0,x1,y1);
-                
-        //         line_cnt += line(&tga,x0,y0,x1,y1);
-        // }
-        // if (line_cnt < 3){
-        //     printf("wring line at %d\n", i);
-        // }
         triangle_face(&tga, &m,m.faces[i],z_buff);
     }
+    
     dump_z_buff(&tga,z_buff);
     // v2i a = {50,40};
     // v2i b = {20,70};
@@ -64,6 +38,10 @@ int main (void){
     write_tga("z1.tga", &tga);
     texture = read_tga ("head_diffuse.tga");
     write_tga("chech.tga", texture);
+    print_faces(&m);
+    //print_face(&m,1);
+    print_vert(&m);
+    //print_text_vert(&m);
     
    
     

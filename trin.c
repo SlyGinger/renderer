@@ -1,6 +1,7 @@
 #include "trin.h"
 
 int triangle (tga_image * img, v3i p0, v3i p1, v3i p2, double intensity, int * z_buff){
+    printf ("strating tring\n");
     tga_color color;
     tga_color color2;
     tga_color color3;
@@ -128,72 +129,6 @@ int triangle (tga_image * img, v3i p0, v3i p1, v3i p2, double intensity, int * z
         }
 
     }
-
-
-
-
-
-    //up
-
-    // int xi = 0;
-    // int x0 = t1[0];
-    // for (int yi = t1[1]; yi < t2[1]; yi++){
-    //     int xn = t0[0] == t2[0] ? t0[0] : get_line_i_x(t0, t2, yi);
-    //     x0 = t1[0] == t2[0] ? t1[0] : get_line_i_x(t1, t2, yi);
-    //     if (xn > x0){
-    //         xi = x0;
-    //     } else {
-    //         xi = xn;
-    //         xn = x0;
-    //     }
-    //     for (; xi <= xn; xi++){
-    //         z = get_line_i_z(t1,t2,xi);
-    //         z_buff_id = xi + img->header->width * yi;
-            
-    //         if (z_buff[z_buff_id] < z) {
-    //             if (z == 20000)
-    //                 set_pixel(img, xi, yi, &color2);
-    //             else if (x_dir_flag == 1){
-    //                 printf ("yellow\n");
-    //                 set_pixel(img, xi, yi, &color3);
-    //             } else
-    //                 set_pixel(img, xi, yi, &color);
-    //             z_buff[z_buff_id] = z;
-    //         }
-    //     }
-    // }
-
-    // //down
-   
-    // xi = 0;
-    // x0 = t1[0];
-    // for (int yi = t1[1]; yi > t0[1]; yi--){
-    //     int xn = t0[0] == t2[0] ? t0[0] : get_line_i_x(t0, t2, yi);
-    //     x0 = t0[0] == t1[0] ? t0[0] : get_line_i_x(t1, t0, yi);
-    //     if (xn > x0){
-    //         xi = x0;
-    //     } else {
-    //         xi = xn;
-    //         xn = x0;
-    //     }
-
-    //     for (; xi <= xn; xi++){
-
-    //         z = get_line_i_z(t1,t0,xi);
-    //         z_buff_id = xi + img->header->width * yi;
-            
-    //         if (z_buff[z_buff_id] < z) {
-    //             if (z == 20000)
-    //                 set_pixel(img, xi, yi, &color2);
-    //             else if (x_dir_flag == 1){
-    //                 printf ("yellow\n");
-    //                 set_pixel(img, xi, yi, &color3);
-    //             } else
-    //                 set_pixel(img, xi, yi, &color);
-    //             z_buff[z_buff_id] = z;
-    //         }
-    //     }
-    // }
     return 0;
 }
 
@@ -206,24 +141,44 @@ int triangle_face  (tga_image *img, model * mdl, face  * poly, int * z_buff){
     v3d bc;
     tga_color color;
     tga_color color2;
- 
+    
+    printf ("_________________\n");
     for (int i = 0; i < 3; i++){
+
         screen_coords[i][0] = (mdl->vertices[poly->vertices[i]][0]+1) * img->header->width/2;
         screen_coords[i][1] = (mdl->vertices[poly->vertices[i]][1]+1) * img->header->height/2;
         screen_coords[i][2] = (mdl->vertices[poly->vertices[i]][2]+1) * Z_DEPTH/2;
         world_coords[i][0] = mdl->vertices[poly->vertices[i]][0]+1;
         world_coords[i][1] = mdl->vertices[poly->vertices[i]][1]+1;
         world_coords[i][2] = mdl->vertices[poly->vertices[i]][2]+1;
+        
+        printf ("wc: ");
+        print_v3d(world_coords[i]);
+        printf ("sc: ");
+        print_v3i(screen_coords[i]);
+        
+        
     }
+   // printf ("_________________\n");
+    
     for (int i = 0; i < 3; i++){
-        ab[i] = world_coords[2][i] - world_coords[0][i];
-        bc[i] = world_coords[1][i] - world_coords[0][i];
+        printf ("ab expected: %lf=%lf-%lf ",world_coords[2][i] - world_coords[0][i],world_coords[2][i], world_coords[0][i]);
+       // ab[i] = world_coords[2][i] - world_coords[0][i];
+       // bc[i] = world_coords[1][i] - world_coords[0][i];
+       ab[i] = world_coords[2][i] - world_coords[0][i];
+       bc[i] = world_coords[1][i] - world_coords[0][i];
     }
-   
+   printf ("\nab: ");
+   print_v3d(ab);
+   printf ("bc: ");
+   print_v3d(bc);
     v3d_cross_prod(ab,ab,bc);
     v3d_norm(ab);
+    
     v3d v_light = {-1,0,0};
     double intensity = v3d_dot_prod(v_light,ab);
+    print_v3d(ab);
+    printf ("t3 int = %lf\n", intensity);
     if (intensity > 0){
         triangle(img,screen_coords[0],screen_coords[1],screen_coords[2],intensity, z_buff);
     }
