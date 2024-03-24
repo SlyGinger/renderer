@@ -1,8 +1,9 @@
 #include "trin.h"
 
-int triangle (tga_image * img, v3i p0, v3i p1, v3i p2, double intensity, int * z_buff){
+int triangle (tga_image * img, v3i p0, v3i p1, v3i p2, v3i tx0, v3i tx1, v3i tx2, model * mdl, double intensity, int * z_buff){
     //printf ("strating tring\n");
     tga_color color;
+    tga_color pixel_color;
     tga_color color2;
     tga_color color3;
     set_color (&color,RAW, 255*intensity,255*intensity,255*intensity,0);
@@ -101,8 +102,12 @@ int triangle_face  (tga_image *img, model * mdl, face  * poly, int * z_buff){
     v3i t0, t1, t2;
     v3i screen_coords[3];
     v3d world_coords[3];
+    v3i texture_coords[3];
+
     v3d ab;
     v3d bc;
+    v3d t_ab;
+    v3d t_bc;
     tga_color color;
     tga_color color2;
     for (int i = 0; i < 3; i++){
@@ -112,17 +117,25 @@ int triangle_face  (tga_image *img, model * mdl, face  * poly, int * z_buff){
         world_coords[i][0] = mdl->vertices[poly->vertices[i]][0]+1;
         world_coords[i][1] = mdl->vertices[poly->vertices[i]][1]+1;
         world_coords[i][2] = mdl->vertices[poly->vertices[i]][2]+1;
+        texture_coords[i][0] = (mdl->texture_vertices[poly->texture_vertices[i]][0]+1) * mdl->diffuse_width;
+        texture_coords[i][1] = (mdl->texture_vertices[poly->texture_vertices[i]][1]+1) * mdl->diffuse_height;
+        texture_coords[i][2] = mdl->texture_vertices[poly->texture_vertices[i]][2]+1;
     }
     for (int i = 0; i < 3; i++){
        ab[i] = world_coords[2][i] - world_coords[0][i];
        bc[i] = world_coords[1][i] - world_coords[0][i];
+       //t_ab[i] = texture_coords[2][i] - texture_coords[0][i];
+       //t_bc[i] = texture_coords[1][i] - texture_coords[0][i];
     }
     v3d_cross_prod(ab,ab,bc);
     v3d_norm(ab);
+    //v3d_cross_prod(t_ab,t_ab,t_bc);
+    //v3d_norm(t_ab);
     v3d v_light = {-1,0,0};
     double intensity = v3d_dot_prod(v_light,ab);
     if (intensity > 0){
-        triangle(img,screen_coords[0],screen_coords[1],screen_coords[2],intensity, z_buff);
+        triangle(img,screen_coords[0],screen_coords[1],screen_coords[2],texture_coords[0], texture_coords[1],
+            texture_coords[2], mdl, intensity,z_buff);
         return 1;
     }
     return 0;
