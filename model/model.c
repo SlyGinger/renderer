@@ -3,11 +3,6 @@
 int  read_obj (FILE * f, model * mdl){
     
     char line[MAXLINE];
-    char buff[MAXLINE];
-    size_t v_cnt = 0;
-    size_t vt_cnt = 0;
-    size_t vn_cnt = 0;
-    v3d vetrex; 
     double *vertex;
     mdl->vertices = NULL;
     mdl->faces = NULL;
@@ -24,7 +19,6 @@ int  read_obj (FILE * f, model * mdl){
     size_t vertices_cnt = 0;
     size_t texture_vertices_cnt = 0;
     size_t normal_vertices_cnt = 0;
-    uint8_t c;
     while (fgets(line,MAXLINE-1,f)){
         if (!strncmp(line,"v ",2)){
             vertex =  read_v3d_from_obj_line (line,"v ");
@@ -33,6 +27,7 @@ int  read_obj (FILE * f, model * mdl){
             for (int i = 0; i < 3; i++){
                 mdl->vertices[vertices_cnt-1][i] = vertex[i]; 
             }
+            //free(vertex);
         }
         if (!strncmp(line,"vt  ",4)){
             vertex =  read_v3d_from_obj_line (line,"vt  ");            
@@ -41,22 +36,19 @@ int  read_obj (FILE * f, model * mdl){
             for (int i = 0; i < 3; i++){
                 mdl->texture_vertices[texture_vertices_cnt-1][i] = vertex[i]; 
             }
+            //free(vertex);
         }
         if (!strncmp(line,"vn  ",4)){
             vertex =  read_v3d_from_obj_line (line,"vn  ");            
             normal_vertices_cnt++;
-            //if (vertex)
                 mdl->normal_vertices = (v3d *) realloc (mdl->normal_vertices ,sizeof(v3d) * normal_vertices_cnt);
             for (int i = 0; i < 3; i++){
                 mdl->normal_vertices[normal_vertices_cnt-1][i] = vertex[i]; 
             }
+            //free(vertex);
         }
-        //_________________poly handling___________________
         if (!strncmp (line,"f ", 2)){
-           //printf ("read poly: %s", line);
-            
             face * poly = NULL;
-            
             poly = (face *) malloc (sizeof(face));
             poly->vertices = NULL;
             poly->texture_vertices = NULL;
@@ -65,51 +57,9 @@ int  read_obj (FILE * f, model * mdl){
             poly->n_vertices = 0;
             poly->n_texture_vertices = 0;
             read_poly_from_obj_line(poly, line, "f ");
-            // uint8_t common_pnt = 1;
-            // uint8_t buff_pnt = 0;
-            // uint8_t vt_pnt = 0;
-            // //read_poly_from_obj_line(poly, line, "f ");
-            // ////printf ("seg_test0 \n");
-            // while (line[common_pnt++] ){
-
-
-            //     //read till space
-            //     while ((buff[buff_pnt++] = line[common_pnt]) != ' ' && (line[common_pnt++] != '\n'))
-            //     ;
-            //     buff[--buff_pnt] = '\0';
-            //     buff_pnt = 0;
-            //     ////printf ("loop1 %s\n", buff);
-            //     //printf ("seg_test1 \n");
-            //     //take first int for atoi
-            //     while (buff[buff_pnt] != '/' && buff[buff_pnt++])
-            //     ;
-            //     buff[--buff_pnt] = '\0';
-            //     ////printf ("loop2 %s\n", buff);
-            //     poly->n_vertices++;
-            //     poly->vertices = (int *) realloc(poly->vertices, sizeof(int) * poly->n_vertices);
-            //     poly->vertices[poly->n_vertices-1] = atoi (buff)-1;
-            //     //printf ("seg_testV=%d\n",poly->vertices[poly->n_vertices-1]);
-            //     //check for vt
-            //     if (buff_pnt < common_pnt){
-            //         vt_pnt = buff_pnt+1;
-            //         //printf ("seg_test20 buff:%s\n",buff);
-            //         while (buff[buff_pnt] != '/' && buff[buff_pnt++])
-            //             //putchar();
-            //         //printf ("seg_test21 \n");
-            //         buff[--buff_pnt] = '\0';
-            //         poly->n_texture_vertices++;
-            //         poly->texture_vertices = (int *) realloc(poly->texture_vertices, sizeof(int) * poly->n_texture_vertices);
-            //         //printf ("seg_test22 %d\n",poly->n_texture_vertices++);
-            //         poly->texture_vertices[poly->n_texture_vertices-1] = atoi (buff+vt_pnt);
-            //     }
-            //     //printf ("seg_test3 \n");
-            // }
-                mdl->n_faces++;
-                mdl->faces = (face **) realloc (mdl->faces, sizeof(face *) * mdl->n_faces);
-                // mdl->faces[mdl->n_faces-1] = (face *) realloc (mdl->faces, sizeof(face) * mdl->n_faces);
-                mdl->faces[mdl->n_faces-1] = poly;
-                //printf ("vrt:%d\n",mdl->n_faces);
-            //printf ("seg_testn \n");
+            mdl->n_faces++;
+            mdl->faces = (face **) realloc (mdl->faces, sizeof(face *) * mdl->n_faces);
+            mdl->faces[mdl->n_faces-1] = poly;
         }
     }
     mdl->n_vertices = vertices_cnt;
@@ -184,27 +134,22 @@ void norm_scale (model *mdl){
 
 double* read_v3d_from_obj_line (char * line, char *str){
     char buff[MAXLINE];
-    double point[3];
+    double *point;
     int i = 0;
     int j = 0;
     int k = 0;
-    //point = (double*) malloc(3*sizeof(double));
+    point = (double*) malloc (sizeof(double)*3);
+
     if (!strncmp(line,str,i = strlen(str))){
-        
-        //point = (double *) malloc(3*sizeof(double));
         for (k = 0; k < 3; k++){
             while ((buff[j++] = line[i++]) != ' ')
             ;
             point[k] = atof(buff);
-            //printf ("buff: %s for k=%d val is%lf ",buff,k,atof(buff));
-            //putchar('\n');
+
             j = 0;
         }
-        //printf ("POINT=");
-        //print_v3d(point);
-        return point;
     }
-    return NULL;
+    return point;
 }
 
 face * read_poly_from_obj_line (face * poly, char * line, char * str){
@@ -214,14 +159,13 @@ face * read_poly_from_obj_line (face * poly, char * line, char * str){
     int j = 0;
     int k = 0;
     if (!strncmp(line,str,i = strlen(str))){
-
         while (line[i] != '\n' && line[i]){
             while ((buff[j++] = line[i++]) != '/' && line[i-1] != ' ')
             ;
             arr[k++] = atoi (buff)-1;
             j = 0;
             if (line[i-1] == ' '){
-                printf ("testface k=%d v=%d vt=%d vn = %d\n",k,arr[0],arr[1],arr[2]);
+                //printf ("testface k=%d v=%d vt=%d vn = %d\n",k,arr[0],arr[1],arr[2]);
                 poly->n_vertices++;
                 poly->n_texture_vertices++;
                 poly->n_normal_vertices++;
@@ -236,5 +180,20 @@ face * read_poly_from_obj_line (face * poly, char * line, char * str){
             }
             
         }
+        return poly;
     }
+    return NULL;
+}
+
+int load_diffuse_texture (model * mdl, char * filename){
+    tga_image * img;
+    img = read_tga (filename);
+    mdl->diffuse_texture = NULL;
+    mdl->diffuse_height = img->header->height;
+    mdl->diffuse_width= img->header->width;
+    mdl->diffuse_texture = free_tga(img);
+    if (mdl->diffuse_texture)
+        return 1;
+    return 0;
+
 }

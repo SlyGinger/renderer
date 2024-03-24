@@ -64,6 +64,8 @@ void write_tga (const char *, tga_image *);
 void print_metadata (tga_hdr *);
 void set_tga_header (tga_hdr *,const char *);
 void swap_int (int *,int *);
+uint8_t * free_tga(tga_image *);
 int line (tga_image *, int, int, int, int);
 tga_image *create_tga (int, int);
+
 #endif

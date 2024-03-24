@@ -11,7 +11,7 @@ int main (void){
     tga = *create_tga(1000,1000);
     model m;
     FILE * f;
-    print_metadata(tga.header);
+    //print_metadata(tga.header);
     f = fopen("a.obj","r");
     read_obj(f,&m);
     norm_scale(&m);
@@ -20,7 +20,7 @@ int main (void){
     for (int i = 0; i< tga.header->width * tga.header->height; i++)
         z_buff[i] = INT_MIN;
     //print_faces(&m);
-    printf ("facess%d",m.n_faces);
+    printf ("faces\n%d",m.n_faces);
     for (int i = 0; i < m.n_faces; i++){
         v2i t0;
         v2i t1;
@@ -36,12 +36,13 @@ int main (void){
     // triangle(&tga,a,b,c);
     //triangle_face (&tga, &m,m.faces[5]);
     write_tga("z1.tga", &tga);
-    texture = read_tga ("head_diffuse.tga");
-    write_tga("chech.tga", texture);
-    print_faces(&m);
+   //texture = read_tga ("head_diffuse.tga");
+   // write_tga("chech.tga", texture);
+    //print_faces(&m);
     //print_face(&m,1);
-    print_vert(&m);
+    //print_vert(&m);
     //print_text_vert(&m);
+    load_diffuse_texture(&m,"chech.tga");
     
    
     

@@ -4,6 +4,8 @@
 
 #include "../common.h"
 #include "../geometry/geometry.h"
+#include "../tga/tga.h"
+
 #define MAXLINE 100000
 
 typedef struct Poly{
@@ -20,6 +22,9 @@ typedef struct Model {
     v3d *texture_vertices;
     v3d *normal_vertices;
     face **faces;
+    uint8_t * diffuse_texture;
+    int diffuse_height;
+    int diffuse_width;
     int n_faces;
     int n_vertices;
     int n_texture_vertices;
@@ -32,6 +37,7 @@ void print_face (model *, size_t);
 void print_vert (model *);
 void print_text_vert (model *);
 void norm_scale (model *);
+int load_diffuse_texture (model *, char *);
 double* read_v3d_from_obj_line (char *, char *);
 face* read_poly_from_obj_line (face *, char *, char *);
 

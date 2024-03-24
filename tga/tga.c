@@ -20,15 +20,13 @@ tga_image* read_tga (const char * filename){
     fread((char *) &header->height  ,sizeof(short),1,f);
     fread((char *) &header->pixel_depth  ,sizeof(char),1,f);
     fread((char *) &header->image_descriptor  ,sizeof(char),1,f);
+    printf ("metadata from %s:",filename);
     print_metadata(header);
+    printf ("end of metadata\n___________________\n");
     img->ppd = header->pixel_depth>>3;
     img->data = (uint8_t *) malloc (header->width * header->height * img->ppd);
     fread((uint8_t *) img->data  ,sizeof(uint8_t) * 3,header->width * header->height * img->ppd,f);
     img->header = header;
-    //printf ("n=%d p=%d div=%lu s=%lu", img->ppd, header->pixel_depth, header->pixel_depth/sizeof(uint8_t), sizeof(uint8_t));
-    //printf ("read: %lu\n", fread(  (uint8_t *)img->data, sizeof(uint8_t), header->width * header->height * img->ppd, f ));
-    //printf ("pixels: %d bytes: %d \n", header->width * header->height, header->width * header->height * header->pixel_depth /8 );
-    //printf ("header struct: %ld \n", sizeof (tga_hdr));
     fclose(f);
     return img;
 }
@@ -211,4 +209,14 @@ tga_image *create_tga (int width, int height){
     memset(img->data,255,header->width * header->height * img->ppd);
     img->header = header;
     return img;
+}
+
+uint8_t * free_tga (tga_image * img){
+    uint8_t * data;
+    data = NULL;
+    if (img->data)
+        data = img->data;
+    free (img->header);
+    free(img);
+    return data;
 }
