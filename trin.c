@@ -1,14 +1,8 @@
 #include "trin.h"
 
 int triangle (tga_image * img, v3i t0, v3i t1, v3i t2, v3i uv0, v3i uv1, v3i uv2, model * mdl, double intensity, int * z_buff){
-    //printf ("strating tring\n");
+    
     tga_color color;
-    tga_color pixel_color;
-    tga_color color2;
-    tga_color color3;
-    set_color (&color,RAW, 255*intensity,255*intensity,255*intensity,0);
-    set_color (&color2,RAW, 255,0,255,0);
-    set_color (&color3,RAW, 0,255,255,0);
     v3i p0;
     v3i p1;
     v3i p2;
@@ -45,31 +39,33 @@ int triangle (tga_image * img, v3i t0, v3i t1, v3i t2, v3i uv0, v3i uv1, v3i uv2
         v3i_swap (tx1,tx2);
     }
     int height =  p2[1]-p0[1];
-    double seg_height;
+
     //printf (")start uv test: U0:%d V0:%d\n",uv0[0],uv0[1]);
-    for (int y = p0[1]; y <= p1[1]; y++){
+    for (int i = 0; i <= height; i++){
         v3i A,B,txA,txB;
         double alpha;
         double beta;
-
-        alpha = (double) (y-p0[1])/(double)height;
-        beta = (double) (y-p0[1])/(double)(p1[1] - p0[1]);
+        int second_half = i > p1[1] - p0[1] || p1[1] == p0[1] ;
+        double seg_height = second_half ? p2[1] - p1[1] : p1[1] - p0[1];
+        alpha = (double) i/(double)height;
+        beta = (double) (i - (second_half ? p1[1]-p0[1] : 0)) / (double)(seg_height);
+        printf ("secongd: %d\n", second_half);
         
         v3i_add(A,p2,p0,-1);//A=p2-p0
         v3i_mul(A,alpha);//A*alpha
         v3i_add(A,A,p0,1);//A+p0;
 
-        v3i_add(B,p1,p0,-1);//B=p1-p0
+        second_half ? v3i_add(B,p2,p1,-1) : v3i_add(B,p1,p0,-1);//B=p1-p0
         v3i_mul(B,beta);//A*beta
-        v3i_add(B,B,p0,1);//B+p0;
-
+        v3i_add(B,B,second_half ? p1 : p0,1);//B+p0;
+        
         v3i_add(txA,tx2,tx0,-1);//txA=tx2-tx0
         v3i_mul(txA,alpha);//txA*alpha
         v3i_add(txA,txA,tx0,1);//A+tx0;
 
-        v3i_add(txB,tx1,tx0,-1);//txB=tx1-tx0
+        second_half ? v3i_add(txB,tx2,tx1,-1) : v3i_add(txB,tx1,tx0,-1);//txB=tx1-tx0
         v3i_mul(txB,beta);//A*beta
-        v3i_add(txB,txB,tx0,1);//txB+tx0;
+        v3i_add(txB,txB,second_half ? tx1 : tx0,1);//txB+tx0;
         
         if (A[0] > B[0]) {
             v3i_swap (A,B);
@@ -86,48 +82,16 @@ int triangle (tga_image * img, v3i t0, v3i t1, v3i t2, v3i uv0, v3i uv1, v3i uv2
                 txP[i] = txA[i] + ((txB[i]-txA[i]) * ph+0.5); 
             }
             int idz = P[0]+P[1]*img->header->width;
-            int pixel = (txP[0] + P[1] * mdl->diffuse_width) * 3 ;
+            int pixel = (txP[0] + txP[1] * mdl->diffuse_width) * img->ppd  ;
             if (z_buff[idz] < P[2]){
                 printf ("pixel height:%d width: %d\n",txP[0],txP[1]);
-                set_color (&color,RAW, mdl->diffuse_texture[pixel+2] *intensity,mdl->diffuse_texture[pixel+1]*intensity,
-                    mdl->diffuse_texture[pixel]*intensity,0);
+                set_color (&color,RAW, mdl->diffuse_texture[pixel] *intensity,mdl->diffuse_texture[pixel+1]*intensity,
+                    mdl->diffuse_texture[pixel+2]*intensity,0);
                 set_pixel(img,P[0],P[1],&color);
                 z_buff[idz] = P[2];
             }
 
         }
-    }
-    for (int y = p1[1]; y <= p2[1]; y++){
-        v3i A,B;
-        double alpha;
-        double beta;
-        alpha = (double) (y-p0[1])/(double)height;
-        beta = (double) (y-p1[1])/(double)(p2[1] - p1[1]);
-        v3i_add(A,p2,p0,-1);//A=p2-p0
-        v3i_mul(A,alpha);//A*alpha
-        v3i_add(A,A,p0,+1);//A+p0;
-
-        v3i_add(B,p2,p1,-1);//B=p1-p0
-        v3i_mul(B,beta);//A*beta
-        v3i_add(B,B,p1,+1);//B+p0;
-        if (A[0] > B[0]) {
-            v3i_swap (A,B);
-        }
-        for (int xi = A[0]; xi < B[0]; xi++){
-            //bilinear
-            double ph = A[0] == B[0] ? 1.0 : (double)(xi - A[0])/(double)(B[0]-A[0]);
-            v3i P;
-            for (int i = 0; i < 3; i++){
-                P[i] = A[i] + ((B[i]-A[i]) * ph+0.5);
-            }
-            int idz = P[0]+P[1]*img->header->width;
-            //z_buff[idz] = P[2];
-            if (z_buff[idz] < P[2]){
-                set_pixel(img,P[0],P[1],&color2);
-                z_buff[idz] = P[2];
-            }
-        }
-
     }
     return 0;
 }
@@ -151,21 +115,16 @@ int triangle_face  (tga_image *img, model * mdl, face  * poly, int * z_buff){
         world_coords[i][0] = mdl->vertices[poly->vertices[i]][0]+1;
         world_coords[i][1] = mdl->vertices[poly->vertices[i]][1]+1;
         world_coords[i][2] = mdl->vertices[poly->vertices[i]][2]+1;
-        texture_coords[i][0] = (mdl->texture_vertices[poly->texture_vertices[i]][0]+1) * mdl->diffuse_width/2;
-        texture_coords[i][1] = (mdl->texture_vertices[poly->texture_vertices[i]][1]+1) * mdl->diffuse_height/2;
-        texture_coords[i][2] = mdl->texture_vertices[poly->texture_vertices[i]][2]+1;
-        //printf ("scaled: u0:%d v0:%d\n",texture_coords[i][0],texture_coords[i][1]);
+        texture_coords[i][0] = (mdl->texture_vertices[poly->texture_vertices[i]][0]) * mdl->diffuse_width;
+        texture_coords[i][1] = (mdl->texture_vertices[poly->texture_vertices[i]][1]) * mdl->diffuse_height;
+        texture_coords[i][2] = 0;
     }
     for (int i = 0; i < 3; i++){
        ab[i] = world_coords[2][i] - world_coords[0][i];
        bc[i] = world_coords[1][i] - world_coords[0][i];
-       //t_ab[i] = texture_coords[2][i] - texture_coords[0][i];
-       //t_bc[i] = texture_coords[1][i] - texture_coords[0][i];
     }
     v3d_cross_prod(ab,ab,bc);
     v3d_norm(ab);
-    //v3d_cross_prod(t_ab,t_ab,t_bc);
-    //v3d_norm(t_ab);
     v3d v_light = {-1,0,0};
     double intensity = v3d_dot_prod(v_light,ab);
     if (intensity > 0){
@@ -176,24 +135,6 @@ int triangle_face  (tga_image *img, model * mdl, face  * poly, int * z_buff){
     return 0;
 }
 
-int get_line_i_z (v3i p1, v3i p2, int x){
-    v3i a;
-    v3i b;
-    if (p1[2] > p2[2]){
-        v3i_set(a,p1);
-        v3i_set(b,p2);
-    } else {
-        v3i_set(b,p1);
-        v3i_set(a,p2);
-    }
-    double k = 0;
-    int c = b[2];
-    if (a[0] - b[0] == 0){
-        k = 1;
-    } else 
-        k = (double)(x - b[0])/(double) (a[0] - b[0]);
-    return ((double) (a[2] - b[2]))*k+c;
-}
 
 void dump_z_buff (tga_image * img, int * z_buff){
     tga_image tga;
