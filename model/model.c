@@ -192,6 +192,7 @@ int load_diffuse_texture (model * mdl, char * filename){
     mdl->diffuse_height = img->header->height;
     mdl->diffuse_width= img->header->width;
     mdl->diffuse_texture = free_tga(img);
+    
     if (mdl->diffuse_texture)
         return 1;
     return 0;

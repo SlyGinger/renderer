@@ -9,6 +9,7 @@ int main (void){
     
     //african_head_diffuse.tga
     tga = *create_tga(1000,1000);
+    //texture = create_tga (20)
     model m;
     FILE * f;
     //print_metadata(tga.header);
@@ -21,6 +22,8 @@ int main (void){
         z_buff[i] = INT_MIN;
     //print_faces(&m);
     printf ("faces\n%d",m.n_faces);
+    load_diffuse_texture(&m,"chech.tga");
+    printf ("h:%d w:%d\n", m.diffuse_height,m.diffuse_width);
     for (int i = 0; i < m.n_faces; i++){
         v2i t0;
         v2i t1;
@@ -42,7 +45,7 @@ int main (void){
     //print_face(&m,1);
     //print_vert(&m);
     //print_text_vert(&m);
-    load_diffuse_texture(&m,"chech.tga");
+    
     
    
     
